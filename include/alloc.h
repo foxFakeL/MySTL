@@ -10,7 +10,6 @@
 #ifndef ALLOC_H
 #define ALLOC_H
 #include <cstddef>
-#include <new>
 namespace mystl {
 class alloc {
    private:
@@ -19,9 +18,12 @@ class alloc {
     enum { NFREELISTS = MAX_BYTES / ALIGN };
 
    private:
+    // 为了节省空间，不单独使用类似于list_node的节点分别储存内容和下一个节点的指针，
+    // 而是将下一个节点的指针和内容放在同一个空间，下一个节点的指针在当前内存块的最前面
+    // 这样就可以通过指针的类型转换来获取内容和下一个节点的指针
+    // 但是这样会导致内存对齐的问题，所以需要将内存块的大小设置为8的倍数
     union FreeListNode {
         union FreeListNode* free_list_link;  // 指向下一个节点
-        char data[1];                        // 储存本节点的首地址
     };
 
     typedef FreeListNode FreeList;

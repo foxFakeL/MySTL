@@ -8,8 +8,6 @@
  * 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 #include "alloc.h"
-
-#include <cstddef>
 #include <cstdlib>
 using namespace mystl;
 using namespace std;
@@ -62,6 +60,7 @@ void* alloc::reallocate(void* p, size_t old_sz, size_t new_sz) {
 }
 
 char* alloc::chunk_alloc(size_t size, int& nobjs) {
+    // size 一定是8的倍数!!!!!!这是前面的代码保证的
     char* result = nullptr;
     size_t total_bytes = size * nobjs;
     size_t bytes_left = end_free - start_free;
@@ -80,7 +79,7 @@ char* alloc::chunk_alloc(size_t size, int& nobjs) {
         size_t bytes_to_get =
             2 * total_bytes + ROUND_UP(heap_size >> 4);  // 申请两倍的空间
         // TODO 为什么要加上ROUND_UP(heap_size >> 4)
-        if (bytes_left > 0) {  // 将内存池剩余空间分配给free_list
+        if (bytes_left > 0) {  // 将内存池剩余空间分配给free_list，bytes_left一定是8的倍数
             FreeList* volatile* my_free_list =
                 free_list + FREELIST_INDEX(bytes_left);
             reinterpret_cast<FreeList*>(start_free)->free_list_link =
@@ -89,14 +88,15 @@ char* alloc::chunk_alloc(size_t size, int& nobjs) {
         }
 
         start_free = static_cast<char*>(malloc(bytes_to_get));
-        if (start_free == nullptr) {
+        if (start_free == nullptr) {    // 当系统中没有内存可用时,从free_list中找到合适的内存块
             FreeList* volatile* my_free_list = nullptr;
             FreeList* p = nullptr;
-            for (int i = size; i <= MAX_BYTES; i += ALIGN) {
-                my_free_list = free_list + FREELIST_INDEX(i);
+            for (int i = size; i <= MAX_BYTES; i += ALIGN) {    // 从free_list中找到合适的内存块
+                my_free_list = free_list + FREELIST_INDEX(i);   // i 一定是8的倍数，所以不用ROUND_UP
                 p = *my_free_list;
                 if (p != nullptr) {
-                    *my_free_list = p->free_list_link;
+                    *my_free_list = p->free_list_link;  // 将当前内存块从free_list中移除
+                    // 用当前内存块更新start_free和end_free
                     start_free = reinterpret_cast<char*>(p);
                     end_free = start_free + i;
                     return chunk_alloc(size, nobjs);
@@ -104,7 +104,7 @@ char* alloc::chunk_alloc(size_t size, int& nobjs) {
             }
             end_free = nullptr;
             start_free =
-                static_cast<char*>(malloc(bytes_to_get));  // 内存池已经用完了
+                static_cast<char*>(malloc(bytes_to_get));  // 内存池已经用完了，再尝试从系统中申请内存
         }
         heap_size += bytes_to_get;
         end_free = start_free + bytes_to_get;
@@ -114,7 +114,7 @@ char* alloc::chunk_alloc(size_t size, int& nobjs) {
 
 void* alloc::refill(size_t n) {
     int nobjs = 20;
-    char* chunk = chunk_alloc(n, nobjs);
+    char* chunk = chunk_alloc(n, nobjs);    // 从内存池中获取内存
     FreeList* volatile* my_free_list = nullptr;
     FreeList* result = nullptr;
     FreeList* current_obj = nullptr;

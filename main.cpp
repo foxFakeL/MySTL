@@ -49,7 +49,6 @@ int main() {
         alloc::deallocate(p, sizeof(int) * 10);
     }
     end = clock();
-    end = clock();
     cout << "alloc time: " << end - start << endl;
     // 测试malloc
     cout << "test malloc" << endl;
