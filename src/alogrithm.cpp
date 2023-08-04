@@ -9,9 +9,12 @@
  */
 #include "alogrithm.h"
 
+#include <cmath>
 #include <cstddef>
 
-void mystl::quick_sort(int* arr, int left, int right) {
+using namespace std;
+
+void mystl::quick_sort(int *arr, int left, int right) {
     if (left >= right) {
         return;
     }
@@ -30,4 +33,70 @@ void mystl::quick_sort(int* arr, int left, int right) {
     arr[i] = key;
     quick_sort(arr, left, i - 1);
     quick_sort(arr, i + 1, right);
+}
+
+// 向量点乘
+double operator*(vector<double> &a, vector<double> &b) {
+    double result = 0;
+    for (int i = 0; i < a.size(); i++) {
+        result += a[i] * b[i];
+    }
+    return result;
+}
+
+// 向量乘法
+vector<double> operator*(vector<double> &a, double b) {
+    vector<double> result;
+    for (int i = 0; i < a.size(); i++) {
+        result.push_back(a[i] * b);
+    }
+    return result;
+}
+// 向量减法
+vector<double> operator-(vector<double> &a, vector<double> &&b) {
+    vector<double> result;
+    for (int i = 0; i < a.size(); i++) {
+        result.push_back(a[i] - b[i]);
+    }
+    return result;
+}
+
+// 向量加法
+vector<double> operator+(vector<double> &a, vector<double> &b) {
+    vector<double> result;
+    for (int i = 0; i < a.size(); i++) {
+        result.push_back(a[i] + b[i]);
+    }
+    return result;
+}
+
+// 向量除法
+vector<double> operator/(vector<double> &a, double b) {
+    vector<double> result;
+    for (int i = 0; i < a.size(); i++) {
+        result.push_back(a[i] / b);
+    }
+    return result;
+}
+
+// 将向量正交化
+vector<vector<double>> mystl::orthogonalization(vector<vector<double>> &vectors) {
+    vector<vector<double>> result;
+    for (int i = 0; i < vectors.size(); i++) {
+        vector<double> temp = vectors[i];
+        for (int j = 0; j < result.size(); j++) {
+            temp = temp - (result[j] * ((vectors[i] * result[j]) / (result[j] * result[j])));
+        }
+        result.push_back(temp);
+    }
+    return result;
+}
+
+// 将向量单位化
+vector<vector<double>> mystl::unitization(vector<vector<double>> &vectors) {
+    vector<vector<double>> result;
+    for (int i = 0; i < vectors.size(); i++) {
+        result.push_back(vectors[i] / sqrt(vectors[i] * vectors[i]));
+    }
+    return result;
 }
