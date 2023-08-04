@@ -19,7 +19,7 @@
 using namespace mystl;
 using std::cout;
 using std::endl;
-
+using std::vector;
 struct Foo {
     int a;
     float b;
@@ -41,4 +41,12 @@ int main() {
     //     }
     //     cout << endl;
     // }
+    vector<vector<double>> a = {{1, 1, 1}, {0, 1, 1}};
+    a = orthogonalization(a);
+    for (auto i : a) {
+        for (auto j : i) {
+            cout << j << " ";
+        }
+        cout << endl;
+    }
 }
